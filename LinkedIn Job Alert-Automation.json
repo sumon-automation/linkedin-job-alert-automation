@@ -1,0 +1,563 @@
+{
+  "name": "LinkedIn Job Alert Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "linkedin-job-search",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1120,
+        224
+      ],
+      "id": "3f4b847d-e750-4e28-997f-250c752b674f",
+      "name": "Webhook",
+      "webhookId": "a9079378-cf41-4308-a3f5-51560c6c2fc5"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -672,
+        224
+      ],
+      "id": "c8331a9d-5627-4ac7-9a20-bd14c8445c4e",
+      "name": "Wait",
+      "webhookId": "dc318c57-1cf4-4614-a548-310c13d261ce"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/actors/cryptosignals~linkedin-jobs-scraper/runs?token=apify_api_FcQ4DjnJgyLvNAm3KhRxFSNNOvWDEu42I4Ri",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n{\n  \"action\": \"search\",\n  \"keywords\": $json.jobTitle,\n  \"location\": $json.location,\n  \"maxItems\": $json.limit\n}\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -896,
+        224
+      ],
+      "id": "31fe77aa-e249-475d-b19f-18c37163e71d",
+      "name": "Apify Run"
+    },
+    {
+      "parameters": {
+        "url": "={{\"https://api.apify.com/v2/actor-runs/\" + $node[\"Apify Run\"].json.data.id + \"?token=apify_api_FcQ4DjnJgyLvNAm3KhRxFSNNOvWDEu42I4Ri\"}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -448,
+        224
+      ],
+      "id": "c34f9d6d-4dd6-405f-a12d-8b9f937b73ef",
+      "name": "Check Run Status"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d9ec5bcf-03a9-400f-8306-9e7450fc059c",
+              "leftValue": "={{$json.data.status}}",
+              "rightValue": "SUCCEEDED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -224,
+        144
+      ],
+      "id": "c357c028-53e9-4f45-af7e-b076382cef29",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "={{$node[\"Check Run Status\"].json.data.output.dataset}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "14217068-21d5-46f1-b9f9-1f6cf7889296",
+      "name": "Get Dataset"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5186c69b-1b00-4253-9229-d5d94c1b83c4",
+              "name": "Job Title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "731e4af2-c50e-4821-962a-061920d4eb90",
+              "name": "Company Name",
+              "value": "={{ $json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "85464b55-8645-425c-8fe2-b11dfd6377eb",
+              "name": "Location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "60662119-b008-4181-b2df-cb4c4fa7ce43",
+              "name": "Posted Time",
+              "value": "={{ $json.postedDate }}",
+              "type": "string"
+            },
+            {
+              "id": "798fc419-fd87-4c51-86eb-286e0616b357",
+              "name": "Job URL",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "2634ec33-5fe4-4c94-8067-59f8185e85e1",
+              "name": "Company URL",
+              "value": "={{$json.companyUrl}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "8cd5c363-8fd8-4504-8d95-fcd747ce700b",
+      "name": "Process Returned Data"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1qEz99mt-0TSvGfMIUyP4pHrJS_YSTkqIlkmxKUoFdUk",
+          "mode": "list",
+          "cachedResultName": "Linkedin Job",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qEz99mt-0TSvGfMIUyP4pHrJS_YSTkqIlkmxKUoFdUk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qEz99mt-0TSvGfMIUyP4pHrJS_YSTkqIlkmxKUoFdUk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Job Title": "={{ $json['Job Title'] }}",
+            "Company Name": "={{ $json['Company Name'] }}",
+            "Location": "={{ $json.Location }}",
+            "Posted Time": "={{ $json['Posted Time'] }}",
+            "Job URL": "={{ $json['Job URL'] }}",
+            "Company Url": "={{ $json['Company URL'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Posted Time",
+              "displayName": "Posted Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job URL",
+              "displayName": "Job URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Url",
+              "displayName": "Company Url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        0
+      ],
+      "id": "2c145b0a-2145-4e47-9c3a-6ca7c21e1cb3",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Vxdyh3v2fDBFYWlW",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "55df3840-c62a-4f33-9961-d7449ab4344f",
+              "leftValue": "={{ [\"FAILED\",\"ABORTED\",\"TIMED-OUT\"].includes($json.data.status) }}",
+              "rightValue": "FAILED",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        240
+      ],
+      "id": "67549567-cbf1-44cc-b25c-7a32c95427a4",
+      "name": "IF Failed"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n{\n  \"success\": false,\n  \"status\": $json.data.status,\n  \"message\": \"Apify actor did not complete successfully.\"\n}\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        224,
+        192
+      ],
+      "id": "73151857-6a36-4c37-b455-77df886f08a1",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        416
+      ],
+      "id": "f7ccc5eb-80fb-4481-b9fb-e175aa51a54b",
+      "name": "Wait1",
+      "webhookId": "346458bb-a0ae-4573-a9e9-b17a20723bd2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n{\n  \"success\": true,\n  \"message\": \"Jobs saved successfully.\",\n  \"jobs\": $items().length\n}\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "d1e6f2d6-1664-424b-9efc-3cf6a0ef2748",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a recruitment analyst.\n\nAnalyze the LinkedIn job listings below.\n\nFor your response:\n1. Mention the most common hiring companies.\n2. Mention the most common job locations.\n3. Mention any noticeable hiring trends.\n\nKeep your answer between 2 and 3 sentences.\n\nJob Listings:\n\n{{ JSON.stringify($input.all().map(item => item.json), null, 2) }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        592,
+        144
+      ],
+      "id": "91e3d446-b7b8-4a07-8f99-f7e4a8cce831",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        352
+      ],
+      "id": "fc4c5ff4-2a49-402c-9e20-8f013e672f00",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "0b7XSNoN6sOITCpx",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "jobTitle": "python developer",
+          "location": "new york",
+          "limit": 30
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Apify Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify Run": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Check Run Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Run Status": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get Dataset",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Dataset": {
+      "main": [
+        [
+          {
+            "node": "Process Returned Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Returned Data": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Failed": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Check Run Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c0787c69-dfb3-480c-901b-c97f59434c9f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "475763f92c91443b93f2db6bbc774a039149492e6461707b9e64177a80a09b90"
+  },
+  "nodeGroups": [],
+  "id": "ySuFyreajxYo4DxR",
+  "tags": []
+}
